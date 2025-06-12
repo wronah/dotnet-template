@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Template.Application.Abstracts;
 using Template.Domain.Entities;
 using Template.Infrastructure;
 using Template.Infrastructure.Options;
+using Template.Infrastructure.Processors;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +32,8 @@ if (builder.Environment.IsDevelopment())
 {
     builder.Configuration.AddJsonFile("appsettings.Development.local.json");
 }
+
+builder.Services.AddScoped<IAuthTokenProcessor, AuthTokenProcessor>();
 
 var app = builder.Build();
 

@@ -5,11 +5,12 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using Template.Application.Abstracts;
 using Template.Domain.Entities;
 using Template.Infrastructure.Options;
 
 namespace Template.Infrastructure.Processors;
-public class AuthTokenProcessor
+public class AuthTokenProcessor : IAuthTokenProcessor
 {
     private readonly JwtOptions jwtOptions;
     private readonly IHttpContextAccessor httpContextAccessor;
