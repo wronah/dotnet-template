@@ -2,11 +2,13 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Scalar.AspNetCore;
 using System.Text;
 using Template.Api.Handlers;
 using Template.Application.Abstracts;
 using Template.Application.Services;
 using Template.Domain.Entities;
+using Template.Domain.Requests;
 using Template.Infrastructure;
 using Template.Infrastructure.Options;
 using Template.Infrastructure.Processors;
@@ -75,17 +77,47 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    app.MapScalarApiReference(options =>
+    {
+        options.WithTitle("Template");
+    });
 }
 
 app.UseExceptionHandler(_ => { });
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapPost("/api/account/register", async (RegisterRequest request, IAccountService accountService) =>
+{
+    await accountService.RegisterAsync(request);
+
+    return Results.Ok();
+});
+
+app.MapPost("/api/account/login", async (LoginRequest request, IAccountService accountService) =>
+{
+    await accountService.LoginAsync(request);
+
+    return Results.Ok();
+});
+
+app.MapPost("/api/account/refresh", async (HttpContext httpContext, IAccountService accountService) =>
+{
+    var refreshToken = httpContext.Request.Cookies["REFRESH_TOKEN"];
+
+    await accountService.RefreshTokenAsync(refreshToken);
+
+    return Results.Ok();
+});
+
+app.MapGet("/api/movies", () => Results.Ok(new List<string> { "Matrix" })).RequireAuthorization();
 
 app.Run();
