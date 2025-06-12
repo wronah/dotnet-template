@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Template.Domain.Entities;
 
-namespace Template.Domain.Configurations;
+namespace Template.Infrastructure.Configurations;
 internal class UserConfiguration : IEntityTypeConfiguration<User>
 {
     public void Configure(EntityTypeBuilder<User> builder)
