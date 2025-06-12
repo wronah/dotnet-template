@@ -4,10 +4,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Template.Application.Abstracts;
+using Template.Application.Services;
 using Template.Domain.Entities;
 using Template.Infrastructure;
 using Template.Infrastructure.Options;
 using Template.Infrastructure.Processors;
+using Template.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,6 +39,8 @@ if (builder.Environment.IsDevelopment())
 }
 
 builder.Services.AddScoped<IAuthTokenProcessor, AuthTokenProcessor>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IAccountService, AccountService>();
 
 builder.Services.AddAuthentication(options =>
 {
