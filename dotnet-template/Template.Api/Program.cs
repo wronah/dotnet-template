@@ -24,6 +24,14 @@ builder.Services.AddOpenApi();
 
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.JwtOptionsKey));
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CorsPolicy", options =>
+    {
+        options.AllowAnyHeader().AllowAnyMethod().AllowCredentials().WithOrigins("app.template.com");
+    });
+});
+
 builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>
 {
     options.Password.RequireDigit = true;
@@ -114,6 +122,8 @@ if (app.Environment.IsDevelopment())
         options.WithTitle("Template");
     });
 }
+
+app.UseCors("CorsPolicy");
 
 app.UseExceptionHandler(_ => { });
 app.UseHttpsRedirection();
