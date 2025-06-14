@@ -1,6 +1,9 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
@@ -139,6 +142,28 @@ app.MapPost("/api/account/refresh", async (HttpContext httpContext, IAccountServ
 
     return Results.Ok();
 });
+
+app.MapGet("/api/account/login/google", ([FromQuery] string returnUrl, LinkGenerator linkGenerator, SignInManager<User> signInManager, HttpContext context) =>
+{
+    var properties = signInManager.ConfigureExternalAuthenticationProperties(provider: "Google", redirectUrl: linkGenerator.GetPathByName(context, "GoogleLoginCallback") + $"?returnUrl={returnUrl}");
+
+    return Results.Challenge(properties, authenticationSchemes: ["Google"]);
+});
+
+app.MapGet("/api/account/login/google/callback", async ([FromQuery] string returnUrl, HttpContext context, IAccountService accountService) =>
+{
+    var result = await context.AuthenticateAsync(GoogleDefaults.AuthenticationScheme);
+
+    if (!result.Succeeded)
+    {
+        return Results.Unauthorized();
+    }
+
+    await accountService.LoginWithGoogleAsync(result.Principal);
+
+    return Results.Redirect(returnUrl);
+
+}).WithName("GoogleLoginCallback");
 
 app.MapGet("/api/movies", () => Results.Ok(new List<string> { "Matrix" })).RequireAuthorization();
 

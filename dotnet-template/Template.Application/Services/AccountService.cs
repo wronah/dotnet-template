@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using System.Security.Claims;
 using Template.Application.Abstracts;
 using Template.Domain.Entities;
 using Template.Domain.Exceptions;
@@ -67,6 +68,57 @@ public class AccountService : IAccountService
         if (user.RefreshTokenExpiresAtUtc < DateTime.UtcNow)
         {
             throw new RefreshTokenException("Refresh token is expired.");
+        }
+
+        await AssignTokens(user);
+    }
+
+    public async Task IAccountService.LoginWithGoogleAsync(ClaimsPrincipal? claimsPrincipal)
+    {
+        if (claimsPrincipal == null)
+        {
+            throw new ExternalLoginProviderException("Google", "ClaimsPrincipal is null.");
+        }
+
+        var email = claimsPrincipal.FindFirstValue(ClaimTypes.Email);
+
+        if (email == null)
+        {
+            throw new ExternalLoginProviderException("Google", "Email is null.");
+        }
+
+        var user = await userManager.FindByEmailAsync(email);
+
+        if (user == null)
+        {
+            var newUser = User.Create(
+                email: email, 
+                firstName: claimsPrincipal.FindFirstValue(ClaimTypes.GivenName) ?? string.Empty, 
+                lastName: claimsPrincipal.FindFirstValue(ClaimTypes.Surname) ?? string.Empty
+            );
+            newUser.EmailConfirmed = true;
+
+            var result = await userManager.CreateAsync(newUser);
+
+            if (!result.Succeeded)
+            {
+                throw new ExternalLoginProviderException("Google", $"Unable to create user: {string.Join(", ", result.Errors.Select(x => x.Description))}");
+            }
+
+            user = newUser;
+        }
+
+        var info = new UserLoginInfo(
+            loginProvider: "Google",
+            providerKey: claimsPrincipal.FindFirstValue(ClaimTypes.Email) ?? string.Empty,
+            displayName: "Google"
+        );
+
+        var loginResult = await userManager.AddLoginAsync(user, info);  
+
+        if(!loginResult.Succeeded)
+        {
+            throw new ExternalLoginProviderException("Google", $"Unable to login the user: {string.Join(", ", loginResult.Errors.Select(x => x.Description))}");
         }
 
         await AssignTokens(user);
