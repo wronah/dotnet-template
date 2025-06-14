@@ -73,7 +73,7 @@ public class AccountService : IAccountService
         await AssignTokens(user);
     }
 
-    public async Task IAccountService.LoginWithGoogleAsync(ClaimsPrincipal? claimsPrincipal)
+    public async Task LoginWithGoogleAsync(ClaimsPrincipal? claimsPrincipal)
     {
         if (claimsPrincipal == null)
         {
