@@ -61,7 +61,7 @@ public class AccountService : IAccountService
 
         if (user == null)
         {
-            throw new RefreshTokenException("Unable to retrieve user for refresh token");
+            throw new RefreshTokenException("Unable to retrieve user for refresh token.");
         }
 
         if (user.RefreshTokenExpiresAtUtc < DateTime.UtcNow)
