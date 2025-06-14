@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -49,9 +50,30 @@ builder.Services.AddAuthentication(options =>
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultSignInScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddCookie().AddGoogle(options =>
+{
+    var clientId = builder.Configuration["Authentication:Google:ClientId"];
+
+    if(clientId == null)
+    {
+        throw new ArgumentNullException(nameof(clientId));
+    }
+
+    var clientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+
+    if (clientSecret == null)
+    {
+        throw new ArgumentNullException(nameof(clientSecret));
+    }
+
+    options.ClientId = clientId;
+    options.ClientSecret = clientSecret;
+    options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+
+
 }).AddJwtBearer(options => 
 {
-    var jwtOptions = builder.Configuration.GetSection(JwtOptions.JwtOptionsKey).Get<JwtOptions>() ?? throw new ArgumentException(nameof(JwtOptions));
+    var jwtOptions = builder.Configuration.GetSection(JwtOptions.JwtOptionsKey).Get<JwtOptions>() ?? throw new ArgumentNullException(nameof(JwtOptions));
 
     options.TokenValidationParameters = new TokenValidationParameters
     {
