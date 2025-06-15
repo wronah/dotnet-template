@@ -177,7 +177,7 @@ app.MapGet("/api/account/login/google/callback", async ([FromQuery] string retur
 }).WithName("GoogleLoginCallback");
 
 app.MapGet("/api/movies", () => Results.Ok(new List<string> { "Matrix" })).RequireAuthorization();
-app.MapGet("/api/salary", () => Results.Ok(new { Message = "Salary increased successfully." }))
+app.MapPatch("/api/salary", () => Results.Ok(new { Message = "Salary increased successfully." }))
     .RequireAuthorization(policy => policy.RequireRole(new List<string>
     {
         IdentityRoleConstants.Admin,
