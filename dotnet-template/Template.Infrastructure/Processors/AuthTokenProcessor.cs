@@ -21,19 +21,19 @@ public class AuthTokenProcessor : IAuthTokenProcessor
         this.httpContextAccessor = httpContextAccessor;
     }
 
-    public (string jwtToken, DateTime expiresAtUtc) GenerateJwtToken(User user)
+    public (string jwtToken, DateTime expiresAtUtc) GenerateJwtToken(User user, IList<string> roles)
     {
         var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.Secret));
 
         var credentials = new SigningCredentials(signingKey, SecurityAlgorithms.HmacSha256);
 
-        var claims = new[]
+        var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.CreateVersion7().ToString()),
             new Claim(JwtRegisteredClaimNames.Email, user.Email),
             new Claim(ClaimTypes.NameIdentifier, user.ToString())
-        };
+        }.Concat(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
         var expiresAt = DateTime.UtcNow.AddMinutes(jwtOptions.ExpirationTimeInMinutes);
 

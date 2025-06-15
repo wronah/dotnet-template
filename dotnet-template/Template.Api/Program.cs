@@ -11,6 +11,7 @@ using System.Text;
 using Template.Api.Handlers;
 using Template.Application.Abstracts;
 using Template.Application.Services;
+using Template.Domain.Constants;
 using Template.Domain.Entities;
 using Template.Domain.Requests;
 using Template.Infrastructure;
@@ -28,7 +29,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", options =>
     {
-        options.AllowAnyHeader().AllowAnyMethod().AllowCredentials().WithOrigins("app.template.com");
+        options.AllowAnyHeader().AllowAnyMethod().AllowCredentials().WithOrigins("http://localhost:5173/");
     });
 });
 
@@ -176,5 +177,10 @@ app.MapGet("/api/account/login/google/callback", async ([FromQuery] string retur
 }).WithName("GoogleLoginCallback");
 
 app.MapGet("/api/movies", () => Results.Ok(new List<string> { "Matrix" })).RequireAuthorization();
+app.MapGet("/api/salary", () => Results.Ok(new { Message = "Salary increased successfully." }))
+    .RequireAuthorization(policy => policy.RequireRole(new List<string>
+    {
+        IdentityRoleConstants.Admin,
+    }));
 
 app.Run();

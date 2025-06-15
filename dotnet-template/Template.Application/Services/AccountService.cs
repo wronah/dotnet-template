@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 using Template.Application.Abstracts;
+using Template.Domain.Constants;
 using Template.Domain.Entities;
+using Template.Domain.Enums;
 using Template.Domain.Exceptions;
 using Template.Domain.Requests;
 
@@ -37,6 +39,8 @@ public class AccountService : IAccountService
         {
             throw new RegistrationFailedException(result.Errors.Select(x => x.Description));
         }
+
+        await userManager.AddToRoleAsync(user, GetIdentityRoleName(request.Role));
     }
 
     public async Task LoginAsync(LoginRequest request)
@@ -105,6 +109,8 @@ public class AccountService : IAccountService
                 throw new ExternalLoginProviderException("Google", $"Unable to create user: {string.Join(", ", result.Errors.Select(x => x.Description))}");
             }
 
+            await userManager.AddToRoleAsync(newUser, GetIdentityRoleName(Role.User));
+
             user = newUser;
         }
 
@@ -126,7 +132,9 @@ public class AccountService : IAccountService
 
     private async Task AssignTokens(User user)
     {
-        var (jwtToken, jwtTokenExpiresAtUtc) = authTokenProcessor.GenerateJwtToken(user);
+        IList<string> roles = await userManager.GetRolesAsync(user);
+
+        var (jwtToken, jwtTokenExpiresAtUtc) = authTokenProcessor.GenerateJwtToken(user, roles);
         var refreshTokenValue = authTokenProcessor.GenerateRefreshToken();
 
         var refreshTokenExpiresAtUtc = DateTime.UtcNow.AddDays(7);
@@ -138,5 +146,14 @@ public class AccountService : IAccountService
 
         authTokenProcessor.WriteAuthenticationTokenAsHttpOnlyCookie("ACCESS_TOKEN", jwtToken, jwtTokenExpiresAtUtc);
         authTokenProcessor.WriteAuthenticationTokenAsHttpOnlyCookie("REFRESH_TOKEN", user.RefreshToken, refreshTokenExpiresAtUtc);
+    }
+
+    private string GetIdentityRoleName(Role role)
+    {
+        return role switch
+        {
+            Role.User => IdentityRoleConstants.User,
+            _ => throw new ArgumentOutOfRangeException(nameof(role), role, "Provided role is not supported."),
+        };
     }
 }

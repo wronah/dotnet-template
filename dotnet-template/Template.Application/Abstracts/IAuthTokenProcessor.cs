@@ -3,7 +3,7 @@
 namespace Template.Application.Abstracts;
 public interface IAuthTokenProcessor
 {
-    (string jwtToken, DateTime expiresAtUtc) GenerateJwtToken(User user);
+    (string jwtToken, DateTime expiresAtUtc) GenerateJwtToken(User user, IList<string> roles);
     string GenerateRefreshToken();
     void WriteAuthenticationTokenAsHttpOnlyCookie(string cookieName, string token, DateTime expiresAt);
 }
