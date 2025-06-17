@@ -8,4 +8,5 @@ public interface IAccountService
     Task LoginAsync(LoginRequest request);
     Task RefreshTokenAsync(string? refreshToken);
     Task LoginWithGoogleAsync(ClaimsPrincipal? claimsPrincipal);
+    Task AssignRoleAsync(Guid accountId, AssignRoleRequest request);
 }

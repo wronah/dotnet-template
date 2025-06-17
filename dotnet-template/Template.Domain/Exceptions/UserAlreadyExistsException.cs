@@ -1,2 +1,2 @@
 ﻿namespace Template.Domain.Exceptions;
-public class UserAlreadyExistsException(string email) : Exception($"User with email: {email} already exists");
+public class UserAlreadyExistsException(string email) : Exception($"User with email: {email} already exists.");

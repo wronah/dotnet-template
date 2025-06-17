@@ -154,6 +154,16 @@ app.MapPost("/api/account/refresh", async (HttpContext httpContext, IAccountServ
     return Results.Ok();
 });
 
+app.MapPost("/api/account/{id}/roles", async (Guid id,AssignRoleRequest request, IAccountService accountService) =>
+{
+    await accountService.AssignRoleAsync(id, request);
+
+    return Results.Ok();
+}).RequireAuthorization(policy => policy.RequireRole(new List<string>
+{
+    IdentityRoleConstants.Admin,
+})); 
+
 app.MapGet("/api/account/login/google", ([FromQuery] string returnUrl, LinkGenerator linkGenerator, SignInManager<User> signInManager, HttpContext context) =>
 {
     var properties = signInManager.ConfigureExternalAuthenticationProperties(provider: "Google", redirectUrl: linkGenerator.GetPathByName(context, "GoogleLoginCallback") + $"?returnUrl={returnUrl}");

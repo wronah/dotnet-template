@@ -122,12 +122,24 @@ public class AccountService : IAccountService
 
         var loginResult = await userManager.AddLoginAsync(user, info);  
 
-        if(!loginResult.Succeeded)
+        if (!loginResult.Succeeded)
         {
             throw new ExternalLoginProviderException("Google", $"Unable to login the user: {string.Join(", ", loginResult.Errors.Select(x => x.Description))}");
         }
 
         await AssignTokens(user);
+    }
+
+    public async Task AssignRoleAsync(Guid accountId, AssignRoleRequest request)
+    {
+        var user = await userManager.FindByIdAsync(accountId.ToString());
+
+        if (user == null)
+        {
+            throw new UserNotFoundByIdException(accountId);
+        }
+
+        await userManager.AddToRoleAsync(user, GetIdentityRoleName(request.Role));
     }
 
     private async Task AssignTokens(User user)
